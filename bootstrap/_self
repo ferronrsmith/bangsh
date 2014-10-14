@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+
+_BANG_PATH=$(
+  BIN_PATH="$0"
+  if [ -L "$BIN_PATH" ]; then
+    BIN_PATH=$(readlink "$BIN_PATH")
+  fi
+  (
+    cd $(dirname "$BIN_PATH") > /dev/null
+    echo -n "$PWD"
+  )
+)
+
+# define core modules
+. "$_BANG_PATH/bangsh/modules/core.sh"
+. "$_BANG_PATH/bangsh/modules/module.sh"
+
+# bangsh sub dir
+b.module.append_lookup_dir "bangsh/modules"
+
+# load core modules
+b.module.require 'task'
+
+
+# define tasks
+# <<TASK STUB>>
+
+task="$1"
+shift
+
+# define depend list here
+# <<DEPENDENCY STUB>>
+# dependency list. if these tools aren't installed grove will exit
+# b.depends_on "sed grep gawk awk"
+
+[ -n "$task" ] && b.task.run "${task}" "$@"

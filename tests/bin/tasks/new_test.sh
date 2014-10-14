@@ -15,6 +15,16 @@ function b.test.passing_a_project_name_as_argument () {
   test_if_project_structure_was_created
 }
 
+function b.test.passing_a_project_name_self () {
+  local tmpdir="$(b.get 'testing.tmpdir')"
+  (
+    b.set 'bang.working_dir' "$tmpdir"
+    b.task.run new lego --self
+  )
+
+  test_if_project_self_structure_was_created
+}
+
 function b.test.passing_a_path_as_argument () {
   local tmpdir="$(b.get 'testing.tmpdir')"
 
@@ -37,9 +47,35 @@ function test_if_project_structure_was_created () {
   b.path.file? "$tmpdir/lero/tasks/.gitkeep"
   b.unittest.assert_success $?
 
+  b.path.file? "$tmpdir/lero/tasks/.gitkeep"
+  b.unittest.assert_success $?
+
   b.path.file? "$tmpdir/lero/lero"
   b.unittest.assert_success "$?"
 
   b.path.executable? "$tmpdir/lero/lero"
+  b.unittest.assert_success $?
+}
+
+
+function test_if_project_self_structure_was_created () {
+  local tmpdir="$(b.get 'testing.tmpdir')"
+
+  b.path.file? "$tmpdir/lego/modules/.gitkeep"
+  b.unittest.assert_success $?
+
+  b.path.dir? "$tmpdir/lego/bangsh/modules/"
+  b.unittest.assert_success $?
+
+  b.path.file? "$tmpdir/lego/tasks/.gitkeep"
+  b.unittest.assert_success $?
+
+  b.path.file? "$tmpdir/lego/tasks/.gitkeep"
+  b.unittest.assert_success $?
+
+  b.path.file? "$tmpdir/lego/lego"
+  b.unittest.assert_success "$?"
+
+  b.path.executable? "$tmpdir/lego/lego"
   b.unittest.assert_success $?
 }

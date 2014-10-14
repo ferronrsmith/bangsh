@@ -157,7 +157,7 @@ function b.try.end () {
 }
 
 function b.resolve_path () {
-  local file="$1"
+  local file="${1//.//}"
   shift
   while [ -n "$1" ]; do
     local file_path="$1/$file.sh"
@@ -173,6 +173,7 @@ function b.preload () {
   for file_path in $(b.path.matching "$1" "*.sh"); do
     source "$file_path"
   done
+  b.set "Bang.Tasks.PreloadedFlag" "true"
 }
 
 ## Check if a given dependency is executable.
@@ -181,9 +182,11 @@ function b.preload () {
 ##
 ## @param dependency - a string containing the name or a path of the command to be checked
 function b.depends_on () {
-  local dependency="$1"
-  if ! which "$dependency" &> /dev/null; then
-    b.raise DependencyNotMetException "This script depends on '$dependency', but it is not executable. Check your \$PATH definition or install it before running."
-    return 1
-  fi
+    for dependency in $1; do
+        hash "$dependency" 2>&-
+        if [ $? == 1 ]; then
+            b.raise DependencyNotMetException  "This script depends on '$dependency', but it is not executable. Check your \$PATH definition or install it before running."
+            return 1;
+        fi
+    done;
 }

@@ -13,7 +13,6 @@
 #     #   - ./my_project
 #     #   |-- modules/.gitkeep
 #     #   |-- tasks/.gitkeep
-#     #   |-- tests/.gitkeep
 #     #   |-- my_project
 #
 #     $ bang new projects/task_new
@@ -24,7 +23,18 @@
 #     #     |-- tasks/.gitkeep
 #     #     |-- tests/.gitkeep
 #     #     |-- task_new
+
+b.module.require opt
+
 function btask.new.run () {
+	b.try.do _run "$@"
+	b.catch ArgumentError b.opt.show_usage
+	b.try.end
+}
+
+function _run () {
+  _load_options
+  b.opt.init "${@:2}" # skip first argument as that denotes the task being processed
   local project="$1"
   if [ -n "$project" ]; then
     (
@@ -34,9 +44,19 @@ function btask.new.run () {
       _create_module_path
       _create_tasks_path
       _create_tests_path
-      _create_main_file
+      if b.opt.has_flag? --self; then
+		_create_self_main_file
+      else
+        _create_main_file
+      fi
+      _copy_bangsh_to_project
     )
   fi
+}
+
+function _load_options () {
+  # Help (--help and -h added as flags)
+  b.opt.add_flag --self "Self containing and not linked"
 }
 
 function _create_module_path () {
@@ -49,6 +69,11 @@ function _create_tasks_path () {
   touch "$project/tasks/.gitkeep"
 }
 
+function _copy_bangsh_to_project () {
+  mkdir -p "$project/bangsh"
+  cp -r "$_BANG_PATH/modules" "$project/bangsh/modules"
+}
+
 function _create_tests_path () {
   mkdir -p "$project/tests"
   touch "$project/tests/.gitkeep"
@@ -58,9 +83,14 @@ function _create_main_file () {
   local project_name="$(basename "$project")"
   exec >> "$project/$project_name"
 
-  echo '#!/usr/bin/env bang run'
-  echo
-  echo '[ -n "$1" ] && b.task.run "$@"'
+  echo "$(cat $_BANG_PATH/bootstrap/_main)"
+  chmod +x "$project/$project_name"
+}
 
+function _create_self_main_file () {
+  local project_name="$(basename "$project")"
+  exec >> "$project/$project_name"
+
+  echo "$(cat $_BANG_PATH/bootstrap/_self)"
   chmod +x "$project/$project_name"
 }

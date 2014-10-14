@@ -1,3 +1,5 @@
+_BANG_TASK_DIRS=(./tasks "$_BANG_PATH/tasks")
+
 ## Adds a new task. It is possible to add a description which is used when
 ## describing it.
 ## @param name - the name of the task
@@ -19,6 +21,10 @@ function b.task.run () {
   shift
 
   if b.task.exists? "$task"; then
+    if ! b.is_set? "Bang.Tasks.PreloadedFlag"; then
+        local task_path="$(b.task.resolve_path $task)"
+        source "$task_path"
+    fi
     "btask.${task}.run" "$@"
   else
     b.raise TaskNotKnown "Task '$task' is unknown"
@@ -28,5 +34,15 @@ function b.task.run () {
 ## Checks whether a task is loaded
 ## @param task - the name of the task
 function b.task.exists? () {
-  declare -f "btask.${1}.run" &> /dev/null
+    if b.is_set? "Bang.Tasks.PreloadedFlag"; then
+        declare -f "btask.${1}.run" &> /dev/null
+    else
+        b.task.resolve_path "$1" &> /dev/null
+    fi
+}
+
+## Resolves a given task name to its filename
+## @param task - the name of the task
+function b.task.resolve_path () {
+  b.resolve_path $1 "${_BANG_TASK_DIRS[@]}"
 }
