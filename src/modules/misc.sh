@@ -10,3 +10,14 @@ function b.misc.has_dependencies? () {
         fi
     done;
 }
+
+
+function b.misc.function_exists? () {
+
+    type $1 | grep -q 'function'
+    if [ $? == 1 ]; then
+        b.raise FunctionDoesNotExist "This script requires $1 to exist but it cannot be found!"
+        return 1;
+    fi
+
+}
